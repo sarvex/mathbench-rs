@@ -51,7 +51,7 @@ def parse_bench(json_dir, benches):
 
             try:
                 if input_size is not None:
-                    bench_name = '{} x{}'.format(bench_name, input_size)
+                    bench_name = f'{bench_name} x{input_size}'
             except ValueError:
                 pass
             lib_name = benchmarks['function_id']
@@ -90,7 +90,9 @@ def main():
     root_dir = os.path.normpath(os.path.join(os.path.dirname(__file__), '..'))
     criterion_dir = os.path.join(root_dir, 'target', 'criterion')
     if not os.path.isdir(criterion_dir):
-        sys.exit("'{}' directory doesn't exist, run `cargo bench` first.".format(criterion_dir))
+        sys.exit(
+            f"'{criterion_dir}' directory doesn't exist, run `cargo bench` first."
+        )
 
     benches = {}
     for bench_dir in os.listdir(criterion_dir):
@@ -119,15 +121,14 @@ def main():
                 parse_bench(new_path, benches)
 
     pt = prettytable.PrettyTable(['benchmark'] + [f'  {x:}  ' for x in libs])
-    for bench_name in benches:
-        if args.wide:
-            if WIDE_PREFIX not in bench_name:
-                continue
-        else:
-            if WIDE_PREFIX in bench_name:
-                continue
-
-        bench = benches[bench_name]
+    for bench_name, bench in benches.items():
+        if (
+            args.wide
+            and WIDE_PREFIX not in bench_name
+            or not args.wide
+            and WIDE_PREFIX in bench_name
+        ):
+            continue
         values = [bench[x] for x in libs if x in bench]
         max_value = max(values)
         min_value = min(values)
